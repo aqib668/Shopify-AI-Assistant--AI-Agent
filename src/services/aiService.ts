@@ -1,0 +1,185 @@
+@@ .. @@
+-// AI Service for handling chat interactions and product recommendations
+-
+-interface ChatMessage {
+-  role: 'user' | 'assistant';
+-  content: string;
+-  timestamp: Date;
+-}
+-
+-interface ProductSearchResult {
+-  products: any[];
+-  explanation: string;
+-}
+-
+-class AIService {
+-  private apiKey: string;
+-  private baseUrl: string = 'https://api.openai.com/v1';
+-
+-  constructor() {
+-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+-    if (!this.apiKey) {
+-      console.warn('OpenAI API key not found. AI features will be limited.');
+-    }
+-  }
+-
+-  async generateResponse(
+-    message: string,
+-    context: {
+-      products?: any[];
+-      storeInfo?: any;
+-      conversationHistory?: ChatMessage[];
+-      businessInfo?: any[];
+-    } = {}
+-  ): Promise<string> {
+-    if (!this.apiKey) {
+-      return this.getFallbackResponse(message);
+-    }
+-
+-    try {
+-      const systemPrompt = this.buildSystemPrompt(context);
+-      const messages = [
+-        { role: 'system', content: systemPrompt },
+-        ...(context.conversationHistory || []).map(msg => ({
+-          role: msg.role,
+-          content: msg.content
+-        })),
+-        { role: 'user', content: message }
+-      ];
+-
+-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+-        method: 'POST',
+-        headers: {
+-          'Authorization': `Bearer ${this.apiKey}`,
+-          'Content-Type': 'application/json',
+-        },
+-        body: JSON.stringify({
+-          model: 'gpt-3.5-turbo',
+-          messages,
+-          max_tokens: 500,
+-          temperature: 0.7,
+-        }),
+-      });
+-
+-      if (!response.ok) {
+-        throw new Error(`API request failed: ${response.status}`);
+-      }
+-
+-      const data = await response.json();
+-      return data.choices[0]?.message?.content || this.getFallbackResponse(message);
+-    } catch (error) {
+-      console.error('AI Service error:', error);
+-      return this.getFallbackResponse(message);
+-    }
+-  }
+-
+-  async searchProducts(
+-    query: string,
+-    products: any[],
+-    limit: number = 5
+-  ): Promise<ProductSearchResult> {
+-    // Simple text-based search as fallback
+-    const lowerQuery = query.toLowerCase();
+-    const matchedProducts = products.filter(product => 
+-      product.title.toLowerCase().includes(lowerQuery) ||
+-      (product.description && product.description.toLowerCase().includes(lowerQuery)) ||
+-      (product.tags && product.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery)))
+-    ).slice(0, limit);
+-
+-    return {
+-      products: matchedProducts,
+-      explanation: matchedProducts.length > 0 
+-        ? `Found ${matchedProducts.length} products matching "${query}"`
+-        : `No exact matches found for "${query}". Here are some popular products you might like.`
+-    };
+-  }
+-
+-  async analyzeImage(imageFile: File, products: any[]): Promise<ProductSearchResult> {
+-    // For now, return some random products as image analysis requires more complex setup
+-    return {
+-      products: products.slice(0, 3),
+-      explanation: "Image analysis is being processed. Here are some popular products that might interest you."
+-    };
+-  }
+-
+-  async generateProductRecommendations(
+-    userPreferences: string,
+-    products: any[],
+-    conversationHistory: ChatMessage[] = []
+-  ): Promise<ProductSearchResult> {
+-    // Simple recommendation based on preferences
+-    const preferences = userPreferences.toLowerCase();
+-    const recommendedProducts = products.filter(product => {
+-      const productText = `${product.title} ${product.description || ''} ${product.tags?.join(' ') || ''}`.toLowerCase();
+-      return preferences.split(' ').some(pref => productText.includes(pref));
+-    }).slice(0, 5);
+-
+-    return {
+-      products: recommendedProducts.length > 0 ? recommendedProducts : products.slice(0, 3),
+-      explanation: "Based on your preferences, here are some products you might like!"
+-    };
+-  }
+-
+-  private buildSystemPrompt(context: any): string {
+-    const { storeInfo, businessInfo } = context;
+-    
+-    let systemPrompt = `You are a helpful AI shopping assistant for ${storeInfo?.store_name || 'our store'}. 
+-
+-Your role is to:
+-- Help customers find products they're looking for
+-- Answer questions about products, shipping, returns, and store policies
+-- Provide personalized recommendations
+-- Assist with adding items to cart
+-- Be friendly, helpful, and knowledgeable
+-
+-Store Information:
+-- Store Name: ${storeInfo?.store_name || 'Our Store'}
+-- Currency: ${storeInfo?.currency || 'USD'}
+-- Email: ${storeInfo?.store_email || 'Not provided'}
+-
+-`;
+-
+-    if (businessInfo && businessInfo.length > 0) {
+-      systemPrompt += `\nBusiness Information:\n`;
+-      businessInfo.forEach(info => {
+-        systemPrompt += `- ${info.title}: ${info.content}\n`;
+-      });
+-    }
+-
+-    systemPrompt += `\nGuidelines:
+-- Always be helpful and friendly
+-- If you don't know something, say so honestly
+-- When recommending products, explain why they're a good fit
+-- Keep responses concise but informative
+-- If a customer wants to add something to cart, confirm the product and guide them through the process
+-- For shipping, returns, or policy questions, refer to the business information provided above
+-
+-`;
+-
+-    return systemPrompt;
+-  }
+-
+-  private getFallbackResponse(message: string): string {
+-    const lowerMessage = message.toLowerCase();
+-    
+-    if (lowerMessage.includes('shipping')) {
+-      return "I'd be happy to help with shipping information! Please check our shipping policy for detailed information, or feel free to ask specific questions about delivery times and costs.";
+-    }
+-    
+-    if (lowerMessage.includes('return') || lowerMessage.includes('refund')) {
+-      return "For returns and refunds, please refer to our return policy. If you have specific questions about returning an item, I'm here to help!";
+-    }
+-    
+-    if (lowerMessage.includes('size') || lowerMessage.includes('sizing')) {
+-      return "For sizing information, please check the product details page where you'll find our size chart and fitting guide.";
+-    }
+-    
+-    return "I'm here to help you find what you're looking for! Could you tell me more about what you need, or would you like me to show you some of our popular products?";
+-  }
+-}
+-
+-export const aiService = new AIService();
++import { geminiService } from './geminiService';
++
++// Re-export for backward compatibility
++export const aiService = geminiService;

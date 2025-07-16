@@ -28,7 +28,7 @@ A comprehensive AI-powered chat assistant for Shopify stores that helps customer
 
 - **Frontend**: React 18 + TypeScript + Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
-- **AI/ML**: OpenAI GPT integration
+- **AI/ML**: Google Gemini API (Free tier available)
 - **Deployment**: Netlify/Vercel ready
 - **Integration**: Shopify Admin API + Storefront API
 
@@ -38,7 +38,7 @@ A comprehensive AI-powered chat assistant for Shopify stores that helps customer
 - Node.js 18+ 
 - Supabase account
 - Shopify store with API access
-- OpenAI API key (optional, for enhanced AI features)
+- Google Gemini API key (free tier available)
 
 ### Installation
 
@@ -62,7 +62,7 @@ Fill in your environment variables:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_OPENAI_API_KEY=your_openai_api_key (optional)
+VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 4. **Start development server**
